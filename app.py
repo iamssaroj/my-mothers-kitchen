@@ -736,6 +736,8 @@ if page == "Home":
         st.image(
             "https://raw.githubusercontent.com/iamssaroj/my-mothers-kitchen/main/images/anjali-mother.jpeg",
             width=260
+            "https://raw.githubusercontent.com/iamssaroj/my-mothers-kitchen/main/images/anjali-mother(1).jpeg",
+            width=260
         )
 
 
