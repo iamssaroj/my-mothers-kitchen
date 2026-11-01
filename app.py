@@ -631,17 +631,12 @@ if page == "Home":
 
         st.write(
             """
-            Anjali's Kitchen is built around a simple love for
+            Anjali's rasoi is built around a simple love for
             homemade Indian food.
 
-            With more than 15 years of cooking experience,
-            Anjali brings traditional flavours, everyday
-            favourites and the warmth of home cooking to
-            every dish.
-
-            This kitchen is a place where food is prepared
-            with patience, care and a passion for sharing
-            good meals with others.
+            An experienced Professional Cook with over 15 years of expertise in commercial cooking and Indian cuisine. 
+            Skilled in preparing a wide variety of authentic Indian dishes, including North Indian, South Indian, and traditional regional specialties. 
+            Proficient in large-scale food preparation, menu planning, kitchen management, and maintaining high standards of taste, quality, hygiene, and consistency.
             """
         )
 
