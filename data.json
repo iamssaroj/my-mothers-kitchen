@@ -5,14 +5,7 @@
       "name": "Mush",
       "description": "",
       "photo": "images/ee425f546f5c4557a831ef89a18966bd.jpg",
-      "comments": [
-        {
-          "id": "c475c6f29cce45378bde09fd2dd3147b",
-          "name": "san",
-          "rating": 2,
-          "text": "jaskhfaefbnv"
-        }
-      ]
+      "comments": []
     }
   ]
 }
