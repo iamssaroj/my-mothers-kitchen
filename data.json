@@ -1,3 +1,11 @@
 {
-  "dishes": []
+  "dishes": [
+    {
+      "id": "5631fa5cf2a74f9389d495c20111703d",
+      "name": "mush",
+      "description": "",
+      "photo": "images/fcc7acd2cf7045d58c22f3016a5d67f7.jpg",
+      "comments": []
+    }
+  ]
 }
