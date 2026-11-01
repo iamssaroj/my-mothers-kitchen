@@ -734,9 +734,10 @@ if page == "Home":
         st.write("")
 
         st.image(
-            "https://raw.githubusercontent.com/iamssaroj/my-mothers-kitchen/main/images/anjali-mother.jpg",
+            "https://raw.githubusercontent.com/iamssaroj/my-mothers-kitchen/main/images/anjali-mother.jpeg",
             width=260
         )
+
 
 # =====================================================
 # 10. ADMIN PAGE
