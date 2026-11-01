@@ -10,7 +10,7 @@ import uuid
 # =====================================================
 
 st.set_page_config(
-    page_title="My Mother's Kitchen",
+    page_title="Anjali's Kitchen",
     page_icon="🍲",
     layout="wide",
     initial_sidebar_state="expanded"
@@ -309,7 +309,7 @@ def photo_url(path):
 # =====================================================
 
 st.markdown(
-    '<div class="main-title">My Mother\'s Kitchen</div>',
+    '<div class="main-title">Anjali\'s Kitchen</div>',
     unsafe_allow_html=True
 )
 
@@ -933,7 +933,7 @@ st.divider()
 
 st.markdown(
     '<div class="footer-text">'
-    'My Mother\'s Kitchen · Homemade with love ❤️'
+    'Anjali\'s Kitchen · Homemade with love ❤️ · By Santosh'
     '</div>',
     unsafe_allow_html=True
 )
