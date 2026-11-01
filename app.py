@@ -4,6 +4,7 @@ import requests
 import json
 import base64
 import uuid
+import html
 
 # =====================================================
 # 1. PAGE CONFIGURATION
@@ -17,130 +18,173 @@ st.set_page_config(
 )
 
 # =====================================================
-# 2. WEBSITE DESIGN
+# 2. DESIGN AND STYLING
 # =====================================================
 
 st.markdown("""
 <style>
 
-/* Main background */
 .stApp {
-    background-color: #ffffff;
+    background: #ffffff;
     color: #292929;
 }
 
-/* Content width */
 [data-testid="stMainBlockContainer"] {
-    max-width: 1050px;
-    padding-top: 2rem;
-    padding-bottom: 3rem;
+    max-width: 1120px;
+    padding-top: 1.5rem;
+    padding-bottom: 2rem;
 }
 
-/* Typography */
 h1, h2, h3 {
-    color: #292929 !important;
     font-family: Georgia, serif !important;
-    letter-spacing: -0.4px;
+    color: #292929 !important;
 }
 
 p {
-    color: #555555;
-    line-height: 1.65;
+    color: #626262;
+    line-height: 1.7;
 }
 
-/* Header */
-.main-title {
+/* Website header */
+
+.site-title {
     text-align: center;
     font-family: Georgia, serif;
     font-size: 43px;
     font-weight: 600;
     color: #292929;
+    margin-bottom: 4px;
+}
+
+.site-tagline {
+    text-align: center;
+    color: #898989;
+    font-size: 14px;
+    letter-spacing: 1px;
+    margin-bottom: 24px;
+}
+
+/* Hero section */
+
+.hero-label {
+    color: #A47745;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    margin-bottom: 12px;
+}
+
+.hero-heading {
+    font-family: Georgia, serif;
+    font-size: 43px;
+    line-height: 1.2;
+    font-weight: 600;
+    color: #292929;
+    margin-bottom: 16px;
+}
+
+.hero-description {
+    font-size: 16px;
+    color: #727272;
+    line-height: 1.9;
+}
+
+.hero-note {
+    color: #A47745;
+    font-family: Georgia, serif;
+    font-size: 17px;
+    font-style: italic;
+    margin-top: 18px;
+}
+
+/* Section headings */
+
+.section-label {
+    color: #A47745;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 2px;
     margin-bottom: 5px;
 }
 
-.main-subtitle {
-    text-align: center;
-    color: #888888;
-    font-size: 15px;
-    margin-top: 0;
-    margin-bottom: 25px;
+.section-heading {
+    font-family: Georgia, serif;
+    font-size: 31px;
+    color: #292929;
+    margin-bottom: 5px;
+}
+
+/* Images */
+
+[data-testid="stImage"] img {
+    border-radius: 12px;
 }
 
 /* Buttons */
+
 .stButton > button,
 .stFormSubmitButton > button {
-    background-color: #292929;
+    background: #292929;
     color: white;
     border: 1px solid #292929;
     border-radius: 7px;
     min-height: 42px;
     font-weight: 500;
-    transition: 0.2s ease;
 }
 
 .stButton > button:hover,
 .stFormSubmitButton > button:hover {
-    background-color: #555555;
+    background: #555555;
     color: white;
     border-color: #555555;
 }
 
-/* Input fields */
+/* Inputs */
+
 .stTextInput input,
 .stTextArea textarea {
     border-radius: 7px;
     border: 1px solid #dddddd;
 }
 
-/* Select boxes */
 .stSelectbox div[data-baseweb="select"] {
     border-radius: 7px;
 }
 
-/* Images */
-[data-testid="stImage"] img {
-    border-radius: 10px;
-}
-
-/* Dish cards */
-[data-testid="stVerticalBlockBorderWrapper"] {
-    border: 1px solid #eeeeee;
-    border-radius: 12px;
-    padding: 12px;
-}
-
 /* Sidebar */
+
 [data-testid="stSidebar"] {
-    background-color: #fafafa;
+    background: #faf9f7;
 }
 
 /* Dividers */
+
 hr {
     border-color: #eeeeee;
 }
 
-/* Captions */
-.stCaption {
-    color: #888888;
-}
-
 /* Footer */
-.footer-text {
+
+.site-footer {
     text-align: center;
     color: #999999;
     font-size: 13px;
-    padding-top: 20px;
+    padding: 18px 0;
 }
 
-/* Mobile adjustments */
+/* Mobile */
+
 @media (max-width: 640px) {
-    .main-title {
-        font-size: 32px;
+    .site-title {
+        font-size: 33px;
     }
 
-    [data-testid="stMainBlockContainer"] {
-        padding-left: 1rem;
-        padding-right: 1rem;
+    .hero-heading {
+        font-size: 33px;
+    }
+
+    .section-heading {
+        font-size: 26px;
     }
 }
 
@@ -163,13 +207,8 @@ try:
     ADMIN_PASSWORD = st.secrets["ADMIN_PASSWORD"]
 
 except Exception:
-    st.error(
-        "Website configuration is incomplete. "
-        "Please configure GITHUB_TOKEN and ADMIN_PASSWORD "
-        "in Streamlit Secrets."
-    )
+    st.error("Please configure your Streamlit Secrets.")
     st.stop()
-
 
 API = f"https://api.github.com/repos/{OWNER}/{REPO}/contents"
 
@@ -181,7 +220,7 @@ HEADERS = {
 
 
 # =====================================================
-# 4. GITHUB STORAGE FUNCTIONS
+# 4. GITHUB STORAGE
 # =====================================================
 
 def get_file(path):
@@ -200,9 +239,7 @@ def get_file(path):
 
     result = response.json()
 
-    content = base64.b64decode(
-        result["content"]
-    )
+    content = base64.b64decode(result["content"])
 
     return content, result["sha"]
 
@@ -242,15 +279,13 @@ def load_data():
     data = json.loads(content.decode("utf-8"))
 
     if not isinstance(data, dict):
-        raise ValueError("Invalid website data format.")
+        raise ValueError("Invalid data.json format.")
 
     if not isinstance(data.get("dishes"), list):
         data["dishes"] = []
 
-    # Ensure every dish has a comments list
     for dish in data["dishes"]:
-        if not isinstance(dish.get("comments"), list):
-            dish["comments"] = []
+        dish.setdefault("comments", [])
 
     return data
 
@@ -266,31 +301,35 @@ def save_data(data):
     return save_file(
         DATA_FILE,
         content,
-        "Update My Mother's Kitchen"
+        "Update Anjali's Kitchen"
+    )
+
+
+def count_comments(data):
+
+    return sum(
+        len(dish.get("comments", []))
+        for dish in data["dishes"]
     )
 
 
 # =====================================================
-# 5. PHOTO UPLOAD FUNCTIONS
+# 5. PHOTO FUNCTIONS
 # =====================================================
 
 def upload_photo(uploaded_file):
 
     extension = uploaded_file.name.rsplit(".", 1)[-1].lower()
 
-    allowed_extensions = ["jpg", "jpeg", "png", "webp"]
-
-    if extension not in allowed_extensions:
-        raise ValueError(
-            "Only JPG, JPEG, PNG and WEBP photos are allowed."
-        )
+    if extension not in ["jpg", "jpeg", "png", "webp"]:
+        raise ValueError("Invalid image format.")
 
     filename = f"images/{uuid.uuid4().hex}.{extension}"
 
     save_file(
         filename,
         uploaded_file.getvalue(),
-        "Upload dish photograph"
+        "Upload food photograph"
     )
 
     return filename
@@ -305,26 +344,7 @@ def photo_url(path):
 
 
 # =====================================================
-# 6. HEADER
-# =====================================================
-
-st.markdown(
-    '<div class="main-title">Anjali\'s Kitchen</div>',
-    unsafe_allow_html=True
-)
-
-st.markdown(
-    '<div class="main-subtitle">'
-    'Homemade flavours. Timeless recipes. Made with love.'
-    '</div>',
-    unsafe_allow_html=True
-)
-
-st.divider()
-
-
-# =====================================================
-# 7. LOAD WEBSITE DATA
+# 6. LOAD WEBSITE DATA
 # =====================================================
 
 try:
@@ -334,16 +354,26 @@ except Exception as e:
     st.error(f"Unable to load website data: {e}")
     st.stop()
 
-
-def count_comments(website_data):
-
-    return sum(
-        len(dish.get("comments", []))
-        for dish in website_data["dishes"]
-    )
-
-
 total_comments = count_comments(data)
+
+
+# =====================================================
+# 7. WEBSITE HEADER
+# =====================================================
+
+st.markdown(
+    '<div class="site-title">Anjali\'s Kitchen</div>',
+    unsafe_allow_html=True
+)
+
+st.markdown(
+    '<div class="site-tagline">'
+    'HOMEMADE FLAVOURS · TRADITIONAL RECIPES · MADE WITH LOVE'
+    '</div>',
+    unsafe_allow_html=True
+)
+
+st.divider()
 
 
 # =====================================================
@@ -351,7 +381,7 @@ total_comments = count_comments(data)
 # =====================================================
 
 page = st.sidebar.radio(
-    "Navigation",
+    "Explore",
     ["Home", "Admin"]
 )
 
@@ -364,53 +394,40 @@ if page == "Home":
 
     # ---------------- HERO SECTION ----------------
 
-    st.write("")
-
-    hero_col1, hero_col2 = st.columns(
-        [1.2, 1],
+    hero_left, hero_right = st.columns(
+        [1.1, 1],
         gap="large",
         vertical_alignment="center"
     )
 
-    with hero_col1:
+    with hero_left:
 
         st.markdown(
             """
-            <div style="padding: 20px 5px;">
-                <p style="
-                    color: #A47745;
-                    font-size: 13px;
-                    letter-spacing: 2px;
-                    font-weight: 600;
-                ">
-                    WELCOME TO OUR KITCHEN
-                </p>
+            <div class="hero-label">
+                WELCOME TO ANJALI'S KITCHEN
+            </div>
 
-                <h1 style="
-                    font-family: Georgia, serif;
-                    font-size: 40px;
-                    line-height: 1.2;
-                    color: #292929;
-                ">
-                    Homemade food,<br>
-                    made with love.
-                </h1>
+            <div class="hero-heading">
+                A little taste of home,
+                in every bite.
+            </div>
 
-                <p style="
-                    font-size: 16px;
-                    color: #777777;
-                    line-height: 1.8;
-                ">
-                    Discover traditional Indian flavours,
-                    homemade recipes and the warmth of
-                    food prepared with care.
-                </p>
+            <div class="hero-description">
+                Discover the joy of homemade Indian food.
+                From traditional favourites to everyday meals,
+                every dish brings together familiar flavours,
+                care and the warmth of a home kitchen.
+            </div>
+
+            <div class="hero-note">
+                Cooked with experience. Served with love.
             </div>
             """,
             unsafe_allow_html=True
         )
 
-    with hero_col2:
+    with hero_right:
 
         if data["dishes"] and data["dishes"][0].get("photo"):
 
@@ -421,117 +438,130 @@ if page == "Home":
 
         else:
 
-            st.info(
-                "Upload your first dish photograph through Admin "
-                "to display it here."
+            st.markdown(
+                """
+                <div style="
+                    background:#F7F3ED;
+                    border-radius:12px;
+                    padding:65px 20px;
+                    text-align:center;
+                ">
+                    <div style="font-size:55px;">🍲</div>
+                    <p style="color:#A47745;">
+                        A warm welcome from our kitchen
+                    </p>
+                </div>
+                """,
+                unsafe_allow_html=True
             )
 
+    st.write("")
     st.divider()
 
     # ---------------- DISH COLLECTION ----------------
 
-    st.markdown("## Our Homemade Dishes")
+    st.markdown(
+        '<div class="section-label">FROM OUR KITCHEN</div>',
+        unsafe_allow_html=True
+    )
+
+    st.markdown(
+        '<div class="section-heading">Our Homemade Dishes</div>',
+        unsafe_allow_html=True
+    )
 
     st.caption(
-        "Explore our dishes and share your experience."
+        "Explore our food and share your experience with us."
     )
+
+    st.write("")
 
     if not data["dishes"]:
 
         st.info(
-            "Our dishes will be displayed here soon. "
-            "Please visit again!"
+            "Our dishes will appear here soon. Please visit again!"
         )
 
     for dish in data["dishes"]:
 
         dish_comments = dish.get("comments", [])
 
-        # ---------------- DISH CARD ----------------
+        # ---------------- DISH PRESENTATION ----------------
 
-        with st.container(border=True):
+        image_col, details_col = st.columns(
+            [1, 1.35],
+            gap="large"
+        )
 
-            image_col, details_col = st.columns(
-                [1, 1.3],
-                gap="large"
-            )
+        with image_col:
 
-            with image_col:
+            if dish.get("photo"):
 
-                if dish.get("photo"):
-
-                    st.image(
-                        photo_url(dish["photo"]),
-                        use_container_width=True
-                    )
-
-                else:
-                    st.info("Photograph unavailable.")
-
-            with details_col:
-
-                st.markdown(
-                    f"### {dish.get('name', 'Untitled Dish')}"
+                st.image(
+                    photo_url(dish["photo"]),
+                    use_container_width=True
                 )
-
-                description = dish.get(
-                    "description",
-                    ""
-                )
-
-                st.write(description)
-
-                st.caption(
-                    f"{len(dish_comments)} comments"
-                )
-
-            st.divider()
-
-            # ---------------- COMMENTS ----------------
-
-            st.markdown(
-                f"**Customer Reviews ({len(dish_comments)})**"
-            )
-
-            if dish_comments:
-
-                for comment in dish_comments:
-
-                    with st.container(border=True):
-
-                        rating = max(
-                            1,
-                            min(
-                                5,
-                                int(comment.get("rating", 5))
-                            )
-                        )
-
-                        st.markdown(
-                            f"**{comment.get('name', 'Guest')}** "
-                            f"· {'⭐' * rating}"
-                        )
-
-                        st.write(
-                            comment.get("text", "")
-                        )
 
             else:
 
-                st.caption(
-                    "Be the first to share your experience!"
+                st.info("Photograph unavailable.")
+
+        with details_col:
+
+            st.markdown(
+                f"### {html.escape(dish.get('name', 'Untitled Dish'))}"
+            )
+
+            st.write(
+                dish.get("description", "")
+            )
+
+            st.caption(
+                f"⭐ Customer reviews: {len(dish_comments)}"
+            )
+
+        # ---------------- CUSTOMER REVIEWS ----------------
+
+        st.markdown("**Customer Reviews**")
+
+        if dish_comments:
+
+            for comment in dish_comments:
+
+                rating = max(
+                    1,
+                    min(5, int(comment.get("rating", 5)))
                 )
 
-            # ---------------- COMMENT FORM ----------------
+                customer_name = html.escape(
+                    str(comment.get("name", "Guest"))
+                )
 
-            if total_comments < MAX_COMMENTS:
+                st.markdown(
+                    f"**{customer_name}** "
+                    f"· {'⭐' * rating}"
+                )
+
+                st.write(comment.get("text", ""))
+
+                st.divider()
+
+        else:
+
+            st.caption(
+                "Be the first to share your experience."
+            )
+
+        # ---------------- COMMENT FORM ----------------
+
+        if total_comments < MAX_COMMENTS:
+
+            with st.expander("Write a review"):
 
                 with st.form(
                     f"comment_form_{dish['id']}",
                     clear_on_submit=True
                 ):
-
-                    st.markdown("**Share your experience**")
 
                     name = st.text_input(
                         "Your name (optional)",
@@ -547,12 +577,12 @@ if page == "Home":
 
                     comment_text = st.text_area(
                         "Your comment",
-                        placeholder="Write your experience here...",
+                        placeholder="Tell us what you thought...",
                         key=f"text_{dish['id']}"
                     )
 
                     submitted = st.form_submit_button(
-                        "Post Comment",
+                        "Post Review",
                         use_container_width=True
                     )
 
@@ -560,25 +590,18 @@ if page == "Home":
 
                         if not comment_text.strip():
 
-                            st.warning(
-                                "Please write a comment before submitting."
-                            )
+                            st.warning("Please write a comment.")
 
                         else:
 
                             try:
-                                # Reload the latest data before saving
+
                                 latest_data = load_data()
 
-                                latest_total = count_comments(
-                                    latest_data
-                                )
-
-                                if latest_total >= MAX_COMMENTS:
+                                if count_comments(latest_data) >= MAX_COMMENTS:
 
                                     st.warning(
-                                        "The maximum limit of 30 comments "
-                                        "has been reached."
+                                        "The 30-comment limit has been reached."
                                     )
 
                                 else:
@@ -593,9 +616,7 @@ if page == "Home":
 
                                     if latest_dish is None:
 
-                                        st.error(
-                                            "This dish is no longer available."
-                                        )
+                                        st.error("Dish not found.")
 
                                     else:
 
@@ -613,7 +634,7 @@ if page == "Home":
                                         save_data(latest_data)
 
                                         st.success(
-                                            "Your comment has been published!"
+                                            "Your review has been published!"
                                         )
 
                                         st.rerun()
@@ -621,94 +642,110 @@ if page == "Home":
                             except Exception as e:
 
                                 st.error(
-                                    f"Could not publish comment: {e}"
+                                    f"Unable to publish review: {e}"
                                 )
 
-            else:
+        else:
 
-                st.info(
-                    "The maximum limit of 30 comments "
-                    "has been reached."
-                )
+            st.info("The maximum of 30 comments has been reached.")
 
-        st.write("")
+        st.divider()
+
+    # =================================================
+    # ABOUT ANJALI
+    # =================================================
+
+    st.write("")
+
+    about_left, about_right = st.columns(
+        [1, 2],
+        gap="large",
+        vertical_alignment="center"
+    )
+
+    with about_left:
+
+        st.markdown(
+            """
+            <div style="
+                background:#F7F3ED;
+                border-radius:12px;
+                padding:45px 15px;
+                text-align:center;
+            ">
+                <div style="font-size:65px;">❤️</div>
+                <p style="
+                    color:#A47745;
+                    font-family:Georgia,serif;
+                    font-size:20px;
+                    font-style:italic;
+                ">
+                    Made with love
+                </p>
+            </div>
+            """,
+            unsafe_allow_html=True
+        )
+
+    with about_right:
+
+        st.markdown(
+            '<div class="section-label">OUR STORY</div>',
+            unsafe_allow_html=True
+        )
+
+        st.markdown(
+            '<div class="section-heading">Meet Anjali</div>',
+            unsafe_allow_html=True
+        )
+
+        st.write(
+            """
+            Anjali's Kitchen is built around a simple love for
+            homemade Indian food.
+
+            With more than 15 years of cooking experience,
+            Anjali brings traditional flavours, everyday
+            favourites and the warmth of home cooking to
+            every dish.
+
+            This kitchen is a place where food is prepared
+            with patience, care and a passion for sharing
+            good meals with others.
+            """
+        )
+
+        st.markdown(
+            """
+            <p style="
+                color:#A47745;
+                font-family:Georgia,serif;
+                font-size:18px;
+                font-style:italic;
+            ">
+                "Good food brings people together."
+            </p>
+            """,
+            unsafe_allow_html=True
+        )
 
 
 # =====================================================
 # 10. ADMIN PAGE
 # =====================================================
-    # ---------------- ABOUT US ----------------
-
-    st.write("")
-    st.divider()
-
-    st.markdown(
-        """
-        <div style="
-            max-width: 750px;
-            margin: 35px auto;
-            text-align: center;
-            padding: 15px;
-        ">
-
-            <p style="
-                color: #A47745;
-                font-size: 13px;
-                letter-spacing: 2px;
-                font-weight: 600;
-            ">
-                OUR STORY
-            </p>
-
-            <h2 style="
-                font-family: Georgia, serif;
-                font-size: 34px;
-                color: #292929;
-            ">
-                About My Mother's Kitchen
-            </h2>
-
-            <p style="
-                color: #666666;
-                font-size: 16px;
-                line-height: 1.9;
-            ">
-                My Mother's Kitchen is a celebration of homemade
-                Indian food, traditional flavours and the joy of
-                cooking. With over 15 years of cooking experience,
-                our kitchen brings together the warmth of home,
-                simple ingredients and recipes prepared with care.
-            </p>
-
-            <p style="
-                color: #A47745;
-                font-family: Georgia, serif;
-                font-size: 19px;
-                font-style: italic;
-            ">
-                Every dish has a story. Every meal is made with love.
-            </p>
-
-        </div>
-        """,
-        unsafe_allow_html=True
-    )
 
 elif page == "Admin":
 
     st.markdown("## Admin Panel")
 
-    # ---------------- LOGIN ----------------
-
     if "admin_logged_in" not in st.session_state:
-
         st.session_state.admin_logged_in = False
+
+    # ---------------- LOGIN ----------------
 
     if not st.session_state.admin_logged_in:
 
-        st.markdown(
-            "Login to manage dishes and customer comments."
-        )
+        st.write("Login to manage your website.")
 
         with st.form("admin_login"):
 
@@ -742,13 +779,11 @@ elif page == "Admin":
             st.session_state.admin_logged_in = False
             st.rerun()
 
-        st.success("Admin logged in successfully.")
+        st.success("Admin logged in.")
 
         st.divider()
 
         # ---------------- SUMMARY ----------------
-
-        st.markdown("### Website Summary")
 
         col1, col2 = st.columns(2)
 
@@ -768,24 +803,15 @@ elif page == "Admin":
 
         st.divider()
 
-        # =================================================
-        # ADD NEW DISH
-        # =================================================
+        # ---------------- ADD DISH ----------------
 
         st.markdown("### Add New Dish")
 
-        with st.form(
-            "add_dish",
-            clear_on_submit=True
-        ):
+        with st.form("add_dish", clear_on_submit=True):
 
-            dish_name = st.text_input(
-                "Dish Name"
-            )
+            dish_name = st.text_input("Dish Name")
 
-            description = st.text_area(
-                "Dish Description"
-            )
+            description = st.text_area("Dish Description")
 
             photo = st.file_uploader(
                 "Upload Dish Photograph",
@@ -805,9 +831,7 @@ elif page == "Admin":
 
                 elif photo is None:
 
-                    st.error(
-                        "Please upload a dish photograph."
-                    )
+                    st.error("Please upload a photograph.")
 
                 else:
 
@@ -825,23 +849,16 @@ elif page == "Admin":
 
                         save_data(data)
 
-                        st.success(
-                            "Dish added successfully!"
-                        )
-
+                        st.success("Dish added successfully!")
                         st.rerun()
 
                     except Exception as e:
 
-                        st.error(
-                            f"Unable to add dish: {e}"
-                        )
+                        st.error(f"Unable to add dish: {e}")
 
         st.divider()
 
-        # =================================================
-        # EDIT AND DELETE DISHES
-        # =================================================
+        # ---------------- EDIT / DELETE DISH ----------------
 
         st.markdown("### Manage Dishes")
 
@@ -849,21 +866,16 @@ elif page == "Admin":
 
             selected_id = st.selectbox(
                 "Select Dish",
-                options=[
-                    dish["id"]
-                    for dish in data["dishes"]
-                ],
+                options=[d["id"] for d in data["dishes"]],
                 format_func=lambda x: next(
-                    dish["name"]
-                    for dish in data["dishes"]
-                    if dish["id"] == x
+                    d["name"] for d in data["dishes"]
+                    if d["id"] == x
                 )
             )
 
             selected_dish = next(
-                dish
-                for dish in data["dishes"]
-                if dish["id"] == selected_id
+                d for d in data["dishes"]
+                if d["id"] == selected_id
             )
 
             if selected_dish.get("photo"):
@@ -881,7 +893,7 @@ elif page == "Admin":
                 )
 
                 new_description = st.text_area(
-                    "Dish Description",
+                    "Description",
                     value=selected_dish.get("description", "")
                 )
 
@@ -899,9 +911,7 @@ elif page == "Admin":
 
                     if not new_name.strip():
 
-                        st.error(
-                            "Dish name cannot be empty."
-                        )
+                        st.error("Dish name cannot be empty.")
 
                     else:
 
@@ -921,30 +931,21 @@ elif page == "Admin":
 
                             save_data(data)
 
-                            st.success(
-                                "Dish updated successfully!"
-                            )
-
+                            st.success("Dish updated!")
                             st.rerun()
 
                         except Exception as e:
 
-                            st.error(
-                                f"Update failed: {e}"
-                            )
-
-            st.write("")
+                            st.error(f"Update failed: {e}")
 
             if st.button(
                 "Delete This Dish",
-                type="primary",
-                use_container_width=True
+                type="primary"
             ):
 
                 data["dishes"] = [
-                    dish
-                    for dish in data["dishes"]
-                    if dish["id"] != selected_id
+                    d for d in data["dishes"]
+                    if d["id"] != selected_id
                 ]
 
                 try:
@@ -959,21 +960,15 @@ elif page == "Admin":
 
                 except Exception as e:
 
-                    st.error(
-                        f"Deletion failed: {e}"
-                    )
+                    st.error(f"Deletion failed: {e}")
 
         else:
 
-            st.info(
-                "No dishes have been added yet."
-            )
+            st.info("No dishes added yet.")
 
         st.divider()
 
-        # =================================================
-        # MANAGE COMMENTS
-        # =================================================
+        # ---------------- DELETE COMMENTS ----------------
 
         st.markdown("### Manage Comments")
 
@@ -999,54 +994,39 @@ elif page == "Admin":
                 format_func=lambda i: (
                     f"{comment_items[i]['comment_name']} — "
                     f"{comment_items[i]['dish_name']}: "
-                    f"{comment_items[i]['comment_text'][:45]}"
+                    f"{comment_items[i]['comment_text'][:40]}"
                 )
             )
 
             selected_item = comment_items[selected_comment]
 
-            st.markdown("**Selected Comment**")
+            st.write(selected_item["comment_text"])
 
-            st.write(
-                selected_item["comment_text"]
-            )
-
-            if st.button(
-                "Delete Selected Comment",
-                use_container_width=True
-            ):
+            if st.button("Delete Selected Comment"):
 
                 for dish in data["dishes"]:
 
                     if dish["id"] == selected_item["dish_id"]:
 
                         dish["comments"] = [
-                            comment
-                            for comment in dish.get("comments", [])
-                            if comment["id"] != selected_item["comment_id"]
+                            c for c in dish.get("comments", [])
+                            if c["id"] != selected_item["comment_id"]
                         ]
 
                 try:
 
                     save_data(data)
 
-                    st.success(
-                        "Comment deleted successfully."
-                    )
-
+                    st.success("Comment deleted.")
                     st.rerun()
 
                 except Exception as e:
 
-                    st.error(
-                        f"Deletion failed: {e}"
-                    )
+                    st.error(f"Deletion failed: {e}")
 
         else:
 
-            st.caption(
-                "No comments available."
-            )
+            st.caption("No comments available.")
 
 
 # =====================================================
@@ -1056,8 +1036,10 @@ elif page == "Admin":
 st.divider()
 
 st.markdown(
-    '<div class="footer-text">'
-    'Anjali\'s Kitchen · Homemade with love ❤️ · By Santosh'
-    '</div>',
+    """
+    <div class="site-footer">
+        Anjali's Kitchen · Homemade with love ❤️
+    </div>
+    """,
     unsafe_allow_html=True
 )
