@@ -362,6 +362,74 @@ page = st.sidebar.radio(
 
 if page == "Home":
 
+    # ---------------- HERO SECTION ----------------
+
+    st.write("")
+
+    hero_col1, hero_col2 = st.columns(
+        [1.2, 1],
+        gap="large",
+        vertical_alignment="center"
+    )
+
+    with hero_col1:
+
+        st.markdown(
+            """
+            <div style="padding: 20px 5px;">
+                <p style="
+                    color: #A47745;
+                    font-size: 13px;
+                    letter-spacing: 2px;
+                    font-weight: 600;
+                ">
+                    WELCOME TO OUR KITCHEN
+                </p>
+
+                <h1 style="
+                    font-family: Georgia, serif;
+                    font-size: 40px;
+                    line-height: 1.2;
+                    color: #292929;
+                ">
+                    Homemade food,<br>
+                    made with love.
+                </h1>
+
+                <p style="
+                    font-size: 16px;
+                    color: #777777;
+                    line-height: 1.8;
+                ">
+                    Discover traditional Indian flavours,
+                    homemade recipes and the warmth of
+                    food prepared with care.
+                </p>
+            </div>
+            """,
+            unsafe_allow_html=True
+        )
+
+    with hero_col2:
+
+        if data["dishes"] and data["dishes"][0].get("photo"):
+
+            st.image(
+                photo_url(data["dishes"][0]["photo"]),
+                use_container_width=True
+            )
+
+        else:
+
+            st.info(
+                "Upload your first dish photograph through Admin "
+                "to display it here."
+            )
+
+    st.divider()
+
+    # ---------------- DISH COLLECTION ----------------
+
     st.markdown("## Our Homemade Dishes")
 
     st.caption(
@@ -569,6 +637,62 @@ if page == "Home":
 # =====================================================
 # 10. ADMIN PAGE
 # =====================================================
+    # ---------------- ABOUT US ----------------
+
+    st.write("")
+    st.divider()
+
+    st.markdown(
+        """
+        <div style="
+            max-width: 750px;
+            margin: 35px auto;
+            text-align: center;
+            padding: 15px;
+        ">
+
+            <p style="
+                color: #A47745;
+                font-size: 13px;
+                letter-spacing: 2px;
+                font-weight: 600;
+            ">
+                OUR STORY
+            </p>
+
+            <h2 style="
+                font-family: Georgia, serif;
+                font-size: 34px;
+                color: #292929;
+            ">
+                About My Mother's Kitchen
+            </h2>
+
+            <p style="
+                color: #666666;
+                font-size: 16px;
+                line-height: 1.9;
+            ">
+                My Mother's Kitchen is a celebration of homemade
+                Indian food, traditional flavours and the joy of
+                cooking. With over 15 years of cooking experience,
+                our kitchen brings together the warmth of home,
+                simple ingredients and recipes prepared with care.
+            </p>
+
+            <p style="
+                color: #A47745;
+                font-family: Georgia, serif;
+                font-size: 19px;
+                font-style: italic;
+            ">
+                Every dish has a story. Every meal is made with love.
+            </p>
+
+        </div>
+        """,
+        unsafe_allow_html=True
+    )
 
 elif page == "Admin":
 
