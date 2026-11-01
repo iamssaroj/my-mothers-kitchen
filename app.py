@@ -11,7 +11,7 @@ import html
 # =====================================================
 
 st.set_page_config(
-    page_title="Anjali's Kitchen",
+    page_title="Anjali's Rasoi Diaries",
     page_icon="🍲",
     layout="wide",
     initial_sidebar_state="expanded"
@@ -328,7 +328,7 @@ total_comments = count_comments(data)
 # =====================================================
 
 st.markdown(
-    '<div class="site-title">Anjali\'s Kitchen</div>',
+    '<div class="site-title">Anjali\'s Rasoi Diaries</div>',
     unsafe_allow_html=True
 )
 
@@ -352,71 +352,82 @@ page = st.sidebar.radio(
 )
 
 
+
 # =====================================================
 # 9. HOME PAGE
 # =====================================================
 
 if page == "Home":
 
-    # HERO SECTION
+    # WELCOME SECTION
 
-    hero_left, hero_right = st.columns(
-        [1.1, 1],
-        gap="large",
-        vertical_alignment="center"
+    st.markdown(
+        '<div class="section-label">WELCOME TO OUR KITCHEN</div>',
+        unsafe_allow_html=True
     )
 
-    with hero_left:
-        st.markdown(
-            """
-            <div class="hero-label">
-                WELCOME TO ANJALI'S KITCHEN
-            </div>
+    st.markdown(
+        '<div class="section-heading">A little taste of home, in every bite.</div>',
+        unsafe_allow_html=True
+    )
 
-            <div class="hero-heading">
-                A little taste of home,
-                in every bite.
-            </div>
+    st.write(
+        """
+        Discover the joy of homemade Indian food.
+        From traditional favourites to everyday meals,
+        every dish brings together familiar flavours,
+        care and the warmth of a home kitchen.
+        """
+    )
 
-            <div class="hero-description">
-                Discover the joy of homemade Indian food.
-                From traditional favourites to everyday meals,
-                every dish brings together familiar flavours,
-                care and the warmth of a home kitchen.
-            </div>
+    st.markdown(
+        """
+        <p style="
+            color:#A47745;
+            font-family:Georgia,serif;
+            font-size:17px;
+            font-style:italic;
+        ">
+            Cooked with experience. Served with love.
+        </p>
+        """,
+        unsafe_allow_html=True
+    )
 
-            <div class="hero-note">
-                Cooked with experience. Served with love.
-            </div>
-            """,
-            unsafe_allow_html=True
-        )
-
-    with hero_right:
-        if data["dishes"] and data["dishes"][0].get("photo"):
-            st.image(
-                photo_url(data["dishes"][0]["photo"]),
-                use_container_width=True
-            )
-        else:
-            st.markdown(
-                """
-                <div style="
-                    background:#F7F3ED;
-                    border-radius:12px;
-                    padding:65px 20px;
-                    text-align:center;
-                ">
-                    <div style="font-size:55px;">🍲</div>
-                    <p style="color:#A47745;">
-                        A warm welcome from our kitchen
-                    </p>
-                </div>
-                """,
-                unsafe_allow_html=True
-            )
+    # PHOTO GALLERY: ANJALI + ALL DISHES
 
     st.write("")
+    st.markdown("### A Glimpse of Our Kitchen")
+
+    mother_photo_url = (
+        f"https://raw.githubusercontent.com/"
+        f"{OWNER}/{REPO}/{BRANCH}/images/anjali-mother.jpeg"
+    )
+
+    gallery_items = [
+        {
+            "name": "Anjali",
+            "photo": mother_photo_url
+        }
+    ]
+
+    for dish in data["dishes"]:
+        if dish.get("photo"):
+            gallery_items.append({
+                "name": dish.get("name", "Homemade Dish"),
+                "photo": photo_url(dish["photo"])
+            })
+
+    gallery_columns = st.columns(3, gap="medium")
+
+    for index, item in enumerate(gallery_items):
+        with gallery_columns[index % 3]:
+            st.image(
+                item["photo"],
+                use_container_width=True,
+                caption=item["name"]
+            )
+
     st.divider()
 
     # DISH COLLECTION
@@ -657,30 +668,6 @@ if page == "Home":
             unsafe_allow_html=True
         )
 
-    # MOTHER'S PHOTO BELOW THE STORY
-
-    st.write("")
-
-    mother_photo_url = (
-        f"https://raw.githubusercontent.com/"
-        f"{OWNER}/{REPO}/{BRANCH}/images/anjali-mother.jpeg"
-    )
-
-    try:
-        response = requests.get(mother_photo_url, timeout=20)
-        response.raise_for_status()
-
-        st.image(
-            response.content,
-            width=260,
-            caption="Anjali"
-        )
-
-    except requests.RequestException:
-        st.warning(
-            "Mother's photo could not be loaded. "
-            "Please check the image filename in the GitHub images folder."
-        )
 
 
 # =====================================================
@@ -947,7 +934,7 @@ st.divider()
 st.markdown(
     """
     <div class="site-footer">
-        Anjali's Kitchen · Homemade with love ❤️
+        Anjali's Kitchen · Homemade with love ❤️ · Santosh
     </div>
     """,
     unsafe_allow_html=True
