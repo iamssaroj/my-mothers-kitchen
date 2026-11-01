@@ -13,6 +13,90 @@ st.set_page_config(
     layout="wide"
 )
 
+
+st.markdown("""
+<style>
+
+/* Main website */
+.stApp {
+    background-color: #FFFFFF;
+    color: #242424;
+}
+
+/* Main content width */
+.block-container {
+    max-width: 1050px;
+    padding-top: 2rem;
+    padding-bottom: 3rem;
+}
+
+/* Main headings */
+h1, h2, h3 {
+    color: #202020 !important;
+    font-family: 'Georgia', serif;
+    letter-spacing: -0.5px;
+}
+
+/* Paragraphs */
+p, label {
+    color: #555555;
+}
+
+/* Buttons */
+.stButton > button,
+.stFormSubmitButton > button {
+    background-color: #222222;
+    color: white;
+    border: 1px solid #222222;
+    border-radius: 7px;
+    padding: 0.55rem 1.2rem;
+    transition: 0.2s ease;
+}
+
+.stButton > button:hover,
+.stFormSubmitButton > button:hover {
+    background-color: #444444;
+    color: white;
+    border-color: #444444;
+}
+
+/* Input fields */
+.stTextInput input,
+.stTextArea textarea {
+    border-radius: 7px;
+    border: 1px solid #DDDDDD;
+}
+
+/* Food photographs */
+.stImage img {
+    border-radius: 10px;
+}
+
+/* Comment containers */
+[data-testid="stVerticalBlockBorderWrapper"] {
+    border-radius: 9px;
+    border-color: #EAEAEA;
+}
+
+/* Sidebar */
+[data-testid="stSidebar"] {
+    background-color: #FAFAFA;
+}
+
+/* Dividers */
+hr {
+    border-color: #EEEEEE;
+}
+
+/* Captions */
+.stCaption {
+    color: #888888;
+}
+
+</style>
+""", unsafe_allow_html=True)
+
+
 OWNER = "iamssaroj"
 REPO = "my-mothers-kitchen"
 BRANCH = "main"
