@@ -699,6 +699,11 @@ if page == "Home":
             unsafe_allow_html=True
         )
 
+            st.image(
+        "https://raw.githubusercontent.com/iamssaroj/my-mothers-kitchen/main/images/anjali-mother.jpg",
+        width=260
+    )
+
         st.write(
             """
             Anjali's Kitchen is built around a simple love for
