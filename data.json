@@ -1,11 +1,3 @@
 {
-  "dishes": [
-    {
-      "id": "4de7d18ab1e94e56b5de618286b6dde1",
-      "name": "mush",
-      "description": "hayns ha kjdu",
-      "photo": "images/519aa702138a421b85888160f41b332f.jpg",
-      "comments": []
-    }
-  ]
+  "dishes": []
 }
