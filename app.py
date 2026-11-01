@@ -5,6 +5,8 @@ import json
 import base64
 import uuid
 import html
+from PIL import Image
+from io import BytesIO
 
 # =====================================================
 # 1. PAGE CONFIGURATION
@@ -271,7 +273,7 @@ def save_data(data):
     return save_file(
         DATA_FILE,
         content,
-        "Update Anjali's Kitchen"
+        "Update Anjali's Rasoi Diaries"
     )
 
 
@@ -352,7 +354,6 @@ page = st.sidebar.radio(
 )
 
 
-
 # =====================================================
 # 9. HOME PAGE
 # =====================================================
@@ -361,73 +362,63 @@ if page == "Home":
 
     # WELCOME SECTION
 
-    st.markdown(
-        '<div class="section-label">WELCOME TO OUR KITCHEN</div>',
-        unsafe_allow_html=True
+    hero_left, hero_right = st.columns(
+        [1.1, 1],
+        gap="large",
+        vertical_alignment="center"
     )
 
-    st.markdown(
-        '<div class="section-heading">A little taste of home, in every bite.</div>',
-        unsafe_allow_html=True
-    )
+    with hero_left:
+        st.markdown(
+            """
+            <div class="hero-label">
+                WELCOME TO OUR KITCHEN
+            </div>
 
-    st.write(
-        """
-        Discover the joy of homemade Indian food.
-        From traditional favourites to everyday meals,
-        every dish brings together familiar flavours,
-        care and the warmth of a home kitchen.
-        """
-    )
+            <div class="hero-heading">
+                A little taste of home,
+                in every bite.
+            </div>
 
-    st.markdown(
-        """
-        <p style="
-            color:#A47745;
-            font-family:Georgia,serif;
-            font-size:17px;
-            font-style:italic;
-        ">
-            Cooked with experience. Served with love.
-        </p>
-        """,
-        unsafe_allow_html=True
-    )
+            <div class="hero-description">
+                Discover the joy of homemade Indian food.
+                From traditional favourites to everyday meals,
+                every dish brings together familiar flavours,
+                care and the warmth of a home kitchen.
+            </div>
 
-    # PHOTO GALLERY: ANJALI + ALL DISHES
+            <div class="hero-note">
+                Cooked with experience. Served with love.
+            </div>
+            """,
+            unsafe_allow_html=True
+        )
 
-    st.write("")
-    st.markdown("### A Glimpse of Our Kitchen")
-
-    mother_photo_url = (
-        f"https://raw.githubusercontent.com/"
-        f"{OWNER}/{REPO}/{BRANCH}/images/anjali-mother.jpeg"
-    )
-
-    gallery_items = [
-        {
-            "name": "Anjali",
-            "photo": mother_photo_url
-        }
-    ]
-
-    for dish in data["dishes"]:
-        if dish.get("photo"):
-            gallery_items.append({
-                "name": dish.get("name", "Homemade Dish"),
-                "photo": photo_url(dish["photo"])
-            })
-
-    gallery_columns = st.columns(3, gap="medium")
-
-    for index, item in enumerate(gallery_items):
-        with gallery_columns[index % 3]:
+    with hero_right:
+        if data["dishes"] and data["dishes"][0].get("photo"):
             st.image(
-                item["photo"],
-                use_container_width=True,
-                caption=item["name"]
+                photo_url(data["dishes"][0]["photo"]),
+                use_container_width=True
+            )
+        else:
+            st.markdown(
+                """
+                <div style="
+                    background:#F7F3ED;
+                    border-radius:12px;
+                    padding:65px 20px;
+                    text-align:center;
+                ">
+                    <div style="font-size:55px;">🍲</div>
+                    <p style="color:#A47745;">
+                        A warm welcome from our kitchen
+                    </p>
+                </div>
+                """,
+                unsafe_allow_html=True
             )
 
+    st.write("")
     st.divider()
 
     # DISH COLLECTION
@@ -668,6 +659,61 @@ if page == "Home":
             unsafe_allow_html=True
         )
 
+    # ANJALI'S PHOTO BELOW OUR STORY
+
+    st.write("")
+
+    mother_photo_url = (
+        f"https://raw.githubusercontent.com/"
+        f"{OWNER}/{REPO}/{BRANCH}/images/anjali-mother.jpeg"
+    )
+
+    try:
+        response = requests.get(
+            mother_photo_url,
+            timeout=20
+        )
+        response.raise_for_status()
+
+        mother_image = Image.open(
+            BytesIO(response.content)
+        ).convert("RGB")
+
+        # CENTRE CROP TO 4:5 PORTRAIT RATIO
+
+        width, height = mother_image.size
+        target_ratio = 4 / 5
+        current_ratio = width / height
+
+        if current_ratio > target_ratio:
+            new_width = int(height * target_ratio)
+            left = (width - new_width) // 2
+
+            mother_image = mother_image.crop(
+                (left, 0, left + new_width, height)
+            )
+
+        else:
+            new_height = int(width / target_ratio)
+            top = (height - new_height) // 2
+
+            mother_image = mother_image.crop(
+                (0, top, width, top + new_height)
+            )
+
+        photo_col = st.columns([1, 2, 1])
+
+        with photo_col[1]:
+            st.image(
+                mother_image,
+                use_container_width=True,
+                caption="Anjali"
+            )
+
+    except Exception as e:
+        st.warning(
+            f"Mother's photo could not be loaded: {e}"
+        )
 
 
 # =====================================================
@@ -934,7 +980,7 @@ st.divider()
 st.markdown(
     """
     <div class="site-footer">
-        Anjali's Kitchen · Homemade with love ❤️ · Santosh
+        Anjali's Rasoi Diaries · Homemade with love ❤️ · Santosh
     </div>
     """,
     unsafe_allow_html=True
