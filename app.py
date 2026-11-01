@@ -210,11 +210,19 @@ def photo_url(path):
 
 # ---------------- HEADER ----------------
 
-st.title("🍲 My Mother's Kitchen")
 st.markdown(
-    "### Homemade food, prepared with love ❤️"
+    "<h1 style='text-align:center; font-size:42px;'>"
+    "My Mother's Kitchen</h1>",
+    unsafe_allow_html=True
 )
-st.caption("Discover our dishes and share your experience.")
+
+st.markdown(
+    "<p style='text-align:center; color:#888888; "
+    "font-size:16px;'>"
+    "Homemade flavours. Timeless recipes. Made with love."
+    "</p>",
+    unsafe_allow_html=True
+)
 
 st.divider()
 
