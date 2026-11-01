@@ -5,7 +5,14 @@
       "name": "mush",
       "description": "",
       "photo": "images/fcc7acd2cf7045d58c22f3016a5d67f7.jpg",
-      "comments": []
+      "comments": [
+        {
+          "id": "c3c124bf50ca4488b292950aa3227c03",
+          "name": "hhhbnb",
+          "rating": 3,
+          "text": "nnm"
+        }
+      ]
     },
     {
       "id": "d385a10744b54404aa74e9085e51d527",
