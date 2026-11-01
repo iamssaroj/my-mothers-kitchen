@@ -5,87 +5,118 @@ import json
 import base64
 import uuid
 
-# ---------------- CONFIGURATION ----------------
+# =====================================================
+# 1. PAGE CONFIGURATION
+# =====================================================
 
 st.set_page_config(
     page_title="My Mother's Kitchen",
     page_icon="🍲",
-    layout="wide"
+    layout="wide",
+    initial_sidebar_state="expanded"
 )
 
+# =====================================================
+# 2. WEBSITE DESIGN
+# =====================================================
 
 st.markdown("""
 <style>
 
-/* Main website */
+/* Main background */
 .stApp {
-    background-color: #FFFFFF;
-    color: #242424;
+    background-color: #ffffff;
+    color: #292929;
 }
 
-/* Main content width */
-.block-container {
+/* Content width */
+[data-testid="stMainBlockContainer"] {
     max-width: 1050px;
     padding-top: 2rem;
     padding-bottom: 3rem;
 }
 
-/* Main headings */
+/* Typography */
 h1, h2, h3 {
-    color: #202020 !important;
-    font-family: 'Georgia', serif;
-    letter-spacing: -0.5px;
+    color: #292929 !important;
+    font-family: Georgia, serif !important;
+    letter-spacing: -0.4px;
 }
 
-/* Paragraphs */
-p, label {
+p {
     color: #555555;
+    line-height: 1.65;
+}
+
+/* Header */
+.main-title {
+    text-align: center;
+    font-family: Georgia, serif;
+    font-size: 43px;
+    font-weight: 600;
+    color: #292929;
+    margin-bottom: 5px;
+}
+
+.main-subtitle {
+    text-align: center;
+    color: #888888;
+    font-size: 15px;
+    margin-top: 0;
+    margin-bottom: 25px;
 }
 
 /* Buttons */
 .stButton > button,
 .stFormSubmitButton > button {
-    background-color: #222222;
+    background-color: #292929;
     color: white;
-    border: 1px solid #222222;
+    border: 1px solid #292929;
     border-radius: 7px;
-    padding: 0.55rem 1.2rem;
+    min-height: 42px;
+    font-weight: 500;
     transition: 0.2s ease;
 }
 
 .stButton > button:hover,
 .stFormSubmitButton > button:hover {
-    background-color: #444444;
+    background-color: #555555;
     color: white;
-    border-color: #444444;
+    border-color: #555555;
 }
 
 /* Input fields */
 .stTextInput input,
 .stTextArea textarea {
     border-radius: 7px;
-    border: 1px solid #DDDDDD;
+    border: 1px solid #dddddd;
 }
 
-/* Food photographs */
-.stImage img {
+/* Select boxes */
+.stSelectbox div[data-baseweb="select"] {
+    border-radius: 7px;
+}
+
+/* Images */
+[data-testid="stImage"] img {
     border-radius: 10px;
 }
 
-/* Comment containers */
+/* Dish cards */
 [data-testid="stVerticalBlockBorderWrapper"] {
-    border-radius: 9px;
-    border-color: #EAEAEA;
+    border: 1px solid #eeeeee;
+    border-radius: 12px;
+    padding: 12px;
 }
 
 /* Sidebar */
 [data-testid="stSidebar"] {
-    background-color: #FAFAFA;
+    background-color: #fafafa;
 }
 
 /* Dividers */
 hr {
-    border-color: #EEEEEE;
+    border-color: #eeeeee;
 }
 
 /* Captions */
@@ -93,23 +124,55 @@ hr {
     color: #888888;
 }
 
+/* Footer */
+.footer-text {
+    text-align: center;
+    color: #999999;
+    font-size: 13px;
+    padding-top: 20px;
+}
+
+/* Mobile adjustments */
+@media (max-width: 640px) {
+    .main-title {
+        font-size: 32px;
+    }
+
+    [data-testid="stMainBlockContainer"] {
+        padding-left: 1rem;
+        padding-right: 1rem;
+    }
+}
+
 </style>
 """, unsafe_allow_html=True)
 
+
+# =====================================================
+# 3. GITHUB CONFIGURATION
+# =====================================================
 
 OWNER = "iamssaroj"
 REPO = "my-mothers-kitchen"
 BRANCH = "main"
 DATA_FILE = "data.json"
+MAX_COMMENTS = 30
 
 try:
     TOKEN = st.secrets["GITHUB_TOKEN"]
     ADMIN_PASSWORD = st.secrets["ADMIN_PASSWORD"]
+
 except Exception:
-    st.error("Website configuration is incomplete. Please configure Streamlit secrets.")
+    st.error(
+        "Website configuration is incomplete. "
+        "Please configure GITHUB_TOKEN and ADMIN_PASSWORD "
+        "in Streamlit Secrets."
+    )
     st.stop()
 
+
 API = f"https://api.github.com/repos/{OWNER}/{REPO}/contents"
+
 HEADERS = {
     "Authorization": f"Bearer {TOKEN}",
     "Accept": "application/vnd.github+json",
@@ -117,9 +180,12 @@ HEADERS = {
 }
 
 
-# ---------------- GITHUB STORAGE ----------------
+# =====================================================
+# 4. GITHUB STORAGE FUNCTIONS
+# =====================================================
 
 def get_file(path):
+
     response = requests.get(
         f"{API}/{path}",
         headers=HEADERS,
@@ -133,12 +199,16 @@ def get_file(path):
     response.raise_for_status()
 
     result = response.json()
-    content = base64.b64decode(result["content"]).decode("utf-8")
+
+    content = base64.b64decode(
+        result["content"]
+    )
 
     return content, result["sha"]
 
 
 def save_file(path, content, message):
+
     _, sha = get_file(path)
 
     payload = {
@@ -158,19 +228,35 @@ def save_file(path, content, message):
     )
 
     response.raise_for_status()
+
     return True
 
 
 def load_data():
+
     content, _ = get_file(DATA_FILE)
 
     if content is None:
         return {"dishes": []}
 
-    return json.loads(content)
+    data = json.loads(content.decode("utf-8"))
+
+    if not isinstance(data, dict):
+        raise ValueError("Invalid website data format.")
+
+    if not isinstance(data.get("dishes"), list):
+        data["dishes"] = []
+
+    # Ensure every dish has a comments list
+    for dish in data["dishes"]:
+        if not isinstance(dish.get("comments"), list):
+            dish["comments"] = []
+
+    return data
 
 
 def save_data(data):
+
     content = json.dumps(
         data,
         ensure_ascii=False,
@@ -180,15 +266,24 @@ def save_data(data):
     return save_file(
         DATA_FILE,
         content,
-        "Update kitchen website data"
+        "Update My Mother's Kitchen"
     )
 
 
+# =====================================================
+# 5. PHOTO UPLOAD FUNCTIONS
+# =====================================================
+
 def upload_photo(uploaded_file):
+
     extension = uploaded_file.name.rsplit(".", 1)[-1].lower()
 
-    if extension not in ["jpg", "jpeg", "png", "webp"]:
-        raise ValueError("Only JPG, JPEG, PNG and WEBP photos are allowed.")
+    allowed_extensions = ["jpg", "jpeg", "png", "webp"]
+
+    if extension not in allowed_extensions:
+        raise ValueError(
+            "Only JPG, JPEG, PNG and WEBP photos are allowed."
+        )
 
     filename = f"images/{uuid.uuid4().hex}.{extension}"
 
@@ -202,43 +297,58 @@ def upload_photo(uploaded_file):
 
 
 def photo_url(path):
+
     return (
         f"https://raw.githubusercontent.com/"
         f"{OWNER}/{REPO}/{BRANCH}/{path}"
     )
 
 
-# ---------------- HEADER ----------------
+# =====================================================
+# 6. HEADER
+# =====================================================
 
 st.markdown(
-    "<h1 style='text-align:center; font-size:42px;'>"
-    "My Mother's Kitchen</h1>",
+    '<div class="main-title">My Mother\'s Kitchen</div>',
     unsafe_allow_html=True
 )
 
 st.markdown(
-    "<p style='text-align:center; color:#888888; "
-    "font-size:16px;'>"
-    "Homemade flavours. Timeless recipes. Made with love."
-    "</p>",
+    '<div class="main-subtitle">'
+    'Homemade flavours. Timeless recipes. Made with love.'
+    '</div>',
     unsafe_allow_html=True
 )
 
 st.divider()
 
+
+# =====================================================
+# 7. LOAD WEBSITE DATA
+# =====================================================
+
 try:
     data = load_data()
+
 except Exception as e:
     st.error(f"Unable to load website data: {e}")
     st.stop()
 
-total_comments = sum(
-    len(dish.get("comments", []))
-    for dish in data["dishes"]
-)
+
+def count_comments(website_data):
+
+    return sum(
+        len(dish.get("comments", []))
+        for dish in website_data["dishes"]
+    )
 
 
-# ---------------- NAVIGATION ----------------
+total_comments = count_comments(data)
+
+
+# =====================================================
+# 8. NAVIGATION
+# =====================================================
 
 page = st.sidebar.radio(
     "Navigation",
@@ -246,161 +356,339 @@ page = st.sidebar.radio(
 )
 
 
-# ---------------- HOME PAGE ----------------
+# =====================================================
+# 9. HOME PAGE
+# =====================================================
 
 if page == "Home":
 
-    st.header("Our Homemade Dishes")
+    st.markdown("## Our Homemade Dishes")
+
+    st.caption(
+        "Explore our dishes and share your experience."
+    )
 
     if not data["dishes"]:
-        st.info("Our dishes will be displayed here soon.")
+
+        st.info(
+            "Our dishes will be displayed here soon. "
+            "Please visit again!"
+        )
 
     for dish in data["dishes"]:
 
-        st.subheader(dish["name"])
+        dish_comments = dish.get("comments", [])
 
-        if dish.get("photo"):
-            st.image(
-                photo_url(dish["photo"]),
-                use_container_width=True
+        # ---------------- DISH CARD ----------------
+
+        with st.container(border=True):
+
+            image_col, details_col = st.columns(
+                [1, 1.3],
+                gap="large"
             )
 
-        st.write(dish.get("description", ""))
+            with image_col:
 
-        comments = dish.get("comments", [])
+                if dish.get("photo"):
 
-        st.markdown(f"**Comments ({len(comments)})**")
-
-        if comments:
-            for comment in comments:
-                with st.container(border=True):
-                    st.markdown(
-                        f"**{comment['name']}** "
-                        f"· {'⭐' * comment['rating']}"
+                    st.image(
+                        photo_url(dish["photo"]),
+                        use_container_width=True
                     )
-                    st.write(comment["text"])
-        else:
-            st.caption("Be the first to share your experience!")
 
-        if total_comments < 30:
+                else:
+                    st.info("Photograph unavailable.")
 
-            with st.form(f"comment_{dish['id']}"):
+            with details_col:
 
-                st.markdown("**Write a comment**")
-
-                name = st.text_input(
-                    "Your name (optional)",
-                    key=f"name_{dish['id']}"
+                st.markdown(
+                    f"### {dish.get('name', 'Untitled Dish')}"
                 )
 
-                rating = st.select_slider(
-                    "Your rating",
-                    options=[1, 2, 3, 4, 5],
-                    value=5,
-                    key=f"rating_{dish['id']}"
+                description = dish.get(
+                    "description",
+                    ""
                 )
 
-                text = st.text_area(
-                    "Your comment",
-                    key=f"text_{dish['id']}"
+                st.write(description)
+
+                st.caption(
+                    f"{len(dish_comments)} comments"
                 )
 
-                submitted = st.form_submit_button(
-                    "Post Comment",
-                    use_container_width=True
+            st.divider()
+
+            # ---------------- COMMENTS ----------------
+
+            st.markdown(
+                f"**Customer Reviews ({len(dish_comments)})**"
+            )
+
+            if dish_comments:
+
+                for comment in dish_comments:
+
+                    with st.container(border=True):
+
+                        rating = max(
+                            1,
+                            min(
+                                5,
+                                int(comment.get("rating", 5))
+                            )
+                        )
+
+                        st.markdown(
+                            f"**{comment.get('name', 'Guest')}** "
+                            f"· {'⭐' * rating}"
+                        )
+
+                        st.write(
+                            comment.get("text", "")
+                        )
+
+            else:
+
+                st.caption(
+                    "Be the first to share your experience!"
                 )
 
-                if submitted:
+            # ---------------- COMMENT FORM ----------------
 
-                    if not text.strip():
-                        st.warning("Please write a comment.")
+            if total_comments < MAX_COMMENTS:
 
-                    elif total_comments >= 30:
-                        st.warning("Maximum 30 comments reached.")
+                with st.form(
+                    f"comment_form_{dish['id']}",
+                    clear_on_submit=True
+                ):
 
-                    else:
-                        dish["comments"].append({
-                            "id": uuid.uuid4().hex,
-                            "name": name.strip() or "Guest",
-                            "rating": int(rating),
-                            "text": text.strip()
-                        })
+                    st.markdown("**Share your experience**")
 
-                        try:
-                            save_data(data)
-                            st.success("Your comment has been published!")
-                            st.rerun()
-                        except Exception as e:
-                            dish["comments"].pop()
-                            st.error(f"Could not publish comment: {e}")
+                    name = st.text_input(
+                        "Your name (optional)",
+                        key=f"name_{dish['id']}"
+                    )
 
-        else:
-            st.info("The maximum limit of 30 comments has been reached.")
+                    rating = st.select_slider(
+                        "Your rating",
+                        options=[1, 2, 3, 4, 5],
+                        value=5,
+                        key=f"rating_{dish['id']}"
+                    )
 
-        st.divider()
+                    comment_text = st.text_area(
+                        "Your comment",
+                        placeholder="Write your experience here...",
+                        key=f"text_{dish['id']}"
+                    )
+
+                    submitted = st.form_submit_button(
+                        "Post Comment",
+                        use_container_width=True
+                    )
+
+                    if submitted:
+
+                        if not comment_text.strip():
+
+                            st.warning(
+                                "Please write a comment before submitting."
+                            )
+
+                        else:
+
+                            try:
+                                # Reload the latest data before saving
+                                latest_data = load_data()
+
+                                latest_total = count_comments(
+                                    latest_data
+                                )
+
+                                if latest_total >= MAX_COMMENTS:
+
+                                    st.warning(
+                                        "The maximum limit of 30 comments "
+                                        "has been reached."
+                                    )
+
+                                else:
+
+                                    latest_dish = next(
+                                        (
+                                            d for d in latest_data["dishes"]
+                                            if d["id"] == dish["id"]
+                                        ),
+                                        None
+                                    )
+
+                                    if latest_dish is None:
+
+                                        st.error(
+                                            "This dish is no longer available."
+                                        )
+
+                                    else:
+
+                                        latest_dish.setdefault(
+                                            "comments", []
+                                        )
+
+                                        latest_dish["comments"].append({
+                                            "id": uuid.uuid4().hex,
+                                            "name": name.strip() or "Guest",
+                                            "rating": int(rating),
+                                            "text": comment_text.strip()
+                                        })
+
+                                        save_data(latest_data)
+
+                                        st.success(
+                                            "Your comment has been published!"
+                                        )
+
+                                        st.rerun()
+
+                            except Exception as e:
+
+                                st.error(
+                                    f"Could not publish comment: {e}"
+                                )
+
+            else:
+
+                st.info(
+                    "The maximum limit of 30 comments "
+                    "has been reached."
+                )
+
+        st.write("")
 
 
-# ---------------- ADMIN PAGE ----------------
+# =====================================================
+# 10. ADMIN PAGE
+# =====================================================
 
 elif page == "Admin":
 
-    st.header("Admin Panel")
+    st.markdown("## Admin Panel")
+
+    # ---------------- LOGIN ----------------
 
     if "admin_logged_in" not in st.session_state:
+
         st.session_state.admin_logged_in = False
 
     if not st.session_state.admin_logged_in:
 
-        password = st.text_input(
-            "Admin Password",
-            type="password"
+        st.markdown(
+            "Login to manage dishes and customer comments."
         )
 
-        if st.button("Login"):
+        with st.form("admin_login"):
 
-            if password == ADMIN_PASSWORD:
-                st.session_state.admin_logged_in = True
-                st.rerun()
-            else:
-                st.error("Incorrect password.")
+            password = st.text_input(
+                "Admin Password",
+                type="password"
+            )
+
+            login_button = st.form_submit_button(
+                "Login",
+                use_container_width=True
+            )
+
+            if login_button:
+
+                if password == ADMIN_PASSWORD:
+
+                    st.session_state.admin_logged_in = True
+                    st.rerun()
+
+                else:
+
+                    st.error("Incorrect password.")
 
     else:
 
+        # ---------------- LOGOUT ----------------
+
         if st.button("Logout"):
+
             st.session_state.admin_logged_in = False
             st.rerun()
 
         st.success("Admin logged in successfully.")
 
-        st.write(f"Total dishes: {len(data['dishes'])}")
-        st.write(f"Comments received: {total_comments}/30")
+        st.divider()
 
-        # ADD DISH
+        # ---------------- SUMMARY ----------------
 
-        st.subheader("Add New Dish")
+        st.markdown("### Website Summary")
 
-        with st.form("add_dish", clear_on_submit=True):
+        col1, col2 = st.columns(2)
 
-            dish_name = st.text_input("Dish Name")
-            description = st.text_area("Dish Description")
+        with col1:
+
+            st.metric(
+                "Total Dishes",
+                len(data["dishes"])
+            )
+
+        with col2:
+
+            st.metric(
+                "Total Comments",
+                f"{total_comments}/{MAX_COMMENTS}"
+            )
+
+        st.divider()
+
+        # =================================================
+        # ADD NEW DISH
+        # =================================================
+
+        st.markdown("### Add New Dish")
+
+        with st.form(
+            "add_dish",
+            clear_on_submit=True
+        ):
+
+            dish_name = st.text_input(
+                "Dish Name"
+            )
+
+            description = st.text_area(
+                "Dish Description"
+            )
 
             photo = st.file_uploader(
                 "Upload Dish Photograph",
                 type=["jpg", "jpeg", "png", "webp"]
             )
 
-            add_button = st.form_submit_button("Add Dish")
+            add_button = st.form_submit_button(
+                "Add Dish",
+                use_container_width=True
+            )
 
             if add_button:
 
                 if not dish_name.strip():
+
                     st.error("Dish name is required.")
 
                 elif photo is None:
-                    st.error("Please upload a dish photograph.")
+
+                    st.error(
+                        "Please upload a dish photograph."
+                    )
 
                 else:
+
                     try:
+
                         photo_path = upload_photo(photo)
 
                         data["dishes"].append({
@@ -412,44 +700,65 @@ elif page == "Admin":
                         })
 
                         save_data(data)
-                        st.success("Dish added successfully!")
+
+                        st.success(
+                            "Dish added successfully!"
+                        )
+
                         st.rerun()
 
                     except Exception as e:
-                        st.error(f"Unable to add dish: {e}")
+
+                        st.error(
+                            f"Unable to add dish: {e}"
+                        )
 
         st.divider()
 
-        # EDIT AND DELETE DISH
+        # =================================================
+        # EDIT AND DELETE DISHES
+        # =================================================
 
-        st.subheader("Manage Dishes")
+        st.markdown("### Manage Dishes")
 
         if data["dishes"]:
 
             selected_id = st.selectbox(
                 "Select Dish",
-                options=[d["id"] for d in data["dishes"]],
+                options=[
+                    dish["id"]
+                    for dish in data["dishes"]
+                ],
                 format_func=lambda x: next(
-                    d["name"] for d in data["dishes"]
-                    if d["id"] == x
+                    dish["name"]
+                    for dish in data["dishes"]
+                    if dish["id"] == x
                 )
             )
 
             selected_dish = next(
-                d for d in data["dishes"]
-                if d["id"] == selected_id
+                dish
+                for dish in data["dishes"]
+                if dish["id"] == selected_id
             )
+
+            if selected_dish.get("photo"):
+
+                st.image(
+                    photo_url(selected_dish["photo"]),
+                    width=350
+                )
 
             with st.form("edit_dish"):
 
                 new_name = st.text_input(
                     "Dish Name",
-                    value=selected_dish["name"]
+                    value=selected_dish.get("name", "")
                 )
 
                 new_description = st.text_area(
-                    "Description",
-                    value=selected_dish["description"]
+                    "Dish Description",
+                    value=selected_dish.get("description", "")
                 )
 
                 new_photo = st.file_uploader(
@@ -457,91 +766,174 @@ elif page == "Admin":
                     type=["jpg", "jpeg", "png", "webp"]
                 )
 
-                edit_button = st.form_submit_button("Save Changes")
+                edit_button = st.form_submit_button(
+                    "Save Changes",
+                    use_container_width=True
+                )
 
                 if edit_button:
 
-                    try:
-                        if not new_name.strip():
-                            st.error("Dish name cannot be empty.")
-                        else:
+                    if not new_name.strip():
+
+                        st.error(
+                            "Dish name cannot be empty."
+                        )
+
+                    else:
+
+                        try:
+
                             selected_dish["name"] = new_name.strip()
-                            selected_dish["description"] = new_description.strip()
+
+                            selected_dish["description"] = (
+                                new_description.strip()
+                            )
 
                             if new_photo is not None:
-                                selected_dish["photo"] = upload_photo(new_photo)
+
+                                selected_dish["photo"] = upload_photo(
+                                    new_photo
+                                )
 
                             save_data(data)
-                            st.success("Dish updated!")
+
+                            st.success(
+                                "Dish updated successfully!"
+                            )
+
                             st.rerun()
 
-                    except Exception as e:
-                        st.error(f"Update failed: {e}")
+                        except Exception as e:
 
-            if st.button("Delete This Dish", type="primary"):
+                            st.error(
+                                f"Update failed: {e}"
+                            )
+
+            st.write("")
+
+            if st.button(
+                "Delete This Dish",
+                type="primary",
+                use_container_width=True
+            ):
 
                 data["dishes"] = [
-                    d for d in data["dishes"]
-                    if d["id"] != selected_id
+                    dish
+                    for dish in data["dishes"]
+                    if dish["id"] != selected_id
                 ]
 
                 try:
+
                     save_data(data)
-                    st.success("Dish and its comments deleted.")
+
+                    st.success(
+                        "Dish and its comments deleted."
+                    )
+
                     st.rerun()
+
                 except Exception as e:
-                    st.error(f"Deletion failed: {e}")
+
+                    st.error(
+                        f"Deletion failed: {e}"
+                    )
 
         else:
-            st.info("No dishes have been added yet.")
+
+            st.info(
+                "No dishes have been added yet."
+            )
 
         st.divider()
 
-        # DELETE COMMENTS
+        # =================================================
+        # MANAGE COMMENTS
+        # =================================================
 
-        st.subheader("Manage Comments")
+        st.markdown("### Manage Comments")
 
         comment_items = []
 
         for dish in data["dishes"]:
+
             for comment in dish.get("comments", []):
-                comment_items.append(
-                    (dish["id"], comment["id"], dish["name"],
-                     comment["name"], comment["text"])
-                )
+
+                comment_items.append({
+                    "dish_id": dish["id"],
+                    "comment_id": comment["id"],
+                    "dish_name": dish["name"],
+                    "comment_name": comment.get("name", "Guest"),
+                    "comment_text": comment.get("text", "")
+                })
 
         if comment_items:
 
             selected_comment = st.selectbox(
-                "Select comment to delete",
+                "Select Comment",
                 options=range(len(comment_items)),
                 format_func=lambda i: (
-                    f"{comment_items[i][3]} — "
-                    f"{comment_items[i][2]}: "
-                    f"{comment_items[i][4][:45]}"
+                    f"{comment_items[i]['comment_name']} — "
+                    f"{comment_items[i]['dish_name']}: "
+                    f"{comment_items[i]['comment_text'][:45]}"
                 )
             )
 
-            if st.button("Delete Selected Comment"):
+            selected_item = comment_items[selected_comment]
 
-                dish_id, comment_id = (
-                    comment_items[selected_comment][0],
-                    comment_items[selected_comment][1]
-                )
+            st.markdown("**Selected Comment**")
+
+            st.write(
+                selected_item["comment_text"]
+            )
+
+            if st.button(
+                "Delete Selected Comment",
+                use_container_width=True
+            ):
 
                 for dish in data["dishes"]:
-                    if dish["id"] == dish_id:
+
+                    if dish["id"] == selected_item["dish_id"]:
+
                         dish["comments"] = [
-                            c for c in dish["comments"]
-                            if c["id"] != comment_id
+                            comment
+                            for comment in dish.get("comments", [])
+                            if comment["id"] != selected_item["comment_id"]
                         ]
 
                 try:
+
                     save_data(data)
-                    st.success("Comment deleted.")
+
+                    st.success(
+                        "Comment deleted successfully."
+                    )
+
                     st.rerun()
+
                 except Exception as e:
-                    st.error(f"Deletion failed: {e}")
+
+                    st.error(
+                        f"Deletion failed: {e}"
+                    )
 
         else:
-            st.caption("No comments available.")
+
+            st.caption(
+                "No comments available."
+            )
+
+
+# =====================================================
+# 11. FOOTER
+# =====================================================
+
+st.divider()
+
+st.markdown(
+    '<div class="footer-text">'
+    'My Mother\'s Kitchen · Homemade with love ❤️'
+    '</div>',
+    unsafe_allow_html=True
+)
