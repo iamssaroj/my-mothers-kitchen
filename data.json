@@ -1,3 +1,11 @@
 {
-  "dishes": []
+  "dishes": [
+    {
+      "id": "38bd3169eb54429ea6b9af4da095bf4a",
+      "name": "ru",
+      "description": "",
+      "photo": "images/6d31b34923f1444ca2006aa9d0eb286b.jpg",
+      "comments": []
+    }
+  ]
 }
