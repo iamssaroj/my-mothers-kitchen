@@ -29,6 +29,12 @@
           "name": "Rukhsar Shaikh",
           "rating": 5,
           "text": "Tasty dishes"
+        },
+        {
+          "id": "39f685dd7d024587bb93ebed107725fe",
+          "name": "Guest",
+          "rating": 5,
+          "text": "Delicious food nice"
         }
       ]
     }
