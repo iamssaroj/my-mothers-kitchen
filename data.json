@@ -1,3 +1,11 @@
 {
-  "dishes": []
+  "dishes": [
+    {
+      "id": "8494a58f269e4de283246e1b9d762574",
+      "name": "False Chicken Mushroom",
+      "description": "Description: Fresh button & oyster mushrooms marinated in thick curd, aromatic Indian spices, ginger-garlic paste and a hint of lemon. Cooked until golden and juicy, offering a deliciously spicy, tangy and creamy flavour.\n\nIngredients: Button & Oyster mushrooms, thick curd, ginger-garlic paste, red chilli powder, turmeric, garam masala, cumin powder, coriander powder, salt, lemon juice and mustard oil.",
+      "photo": "images/6723c25e2706481dbea146298dc3f1aa.jpg",
+      "comments": []
+    }
+  ]
 }
